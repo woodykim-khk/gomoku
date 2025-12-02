@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오목 - Gomoku Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="gomoku.css">
+</head>
+<body>
+    <canvas id="bgCanvas"></canvas>
+
+    <div class="container">
+        <header>
+            <h1>GOMOKU</h1>
+            <p class="subtitle">오목 마스터</p>
+        </header>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="pvp" onclick="setGameMode('pvp')">👥 2인 대전</button>
+            <button class="mode-btn" data-mode="ai-easy" onclick="setGameMode('ai-easy')">🤖 졸고 있는 우디와의 오목! (쉬움)</button>
+            <button class="mode-btn" data-mode="ai-hard" onclick="setGameMode('ai-hard')">🧠 분노한 우디와의 오목! (어려움)</button>
+        </div>
+
+        <div class="game-area">
+            <div class="side-panel">
+                <div class="panel-card">
+                    <div class="panel-title">플레이어</div>
+                    <div class="player-card active" id="player-black">
+                        <div class="player-stone-icon black"></div>
+                        <div class="player-details">
+                            <div class="player-name">흑돌</div>
+                            <div class="player-stats">선공</div>
+                        </div>
+                    </div>
+                    <div class="player-card" id="player-white">
+                        <div class="player-stone-icon white"></div>
+                        <div class="player-details">
+                            <div class="player-name" id="white-name">백돌</div>
+                            <div class="player-stats">후공</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">게임 정보</div>
+                    <div class="stat-row">
+                        <span class="stat-label">진행 시간</span>
+                        <span class="stat-value" id="timer">00:00</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">총 착수</span>
+                        <span class="stat-value" id="move-count">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">흑돌</span>
+                        <span class="stat-value" id="black-count">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">백돌</span>
+                        <span class="stat-value" id="white-count">0</span>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-title">착수 기록</div>
+                    <div class="move-history" id="move-history"></div>
+                </div>
+            </div>
+
+            <div class="board-container">
+                <div class="board-wrapper">
+                    <div class="coord-labels top">
+                        <span>A</span><span>B</span><span>C</span><span>D</span><span>E</span>
+                        <span>F</span><span>G</span><span>H</span><span>I</span><span>J</span>
+                        <span>K</span><span>L</span><span>M</span><span>N</span><span>O</span>
+                    </div>
+                    <div class="coord-labels left">
+                        <span>15</span><span>14</span><span>13</span><span>12</span><span>11</span>
+                        <span>10</span><span>9</span><span>8</span><span>7</span><span>6</span>
+                        <span>5</span><span>4</span><span>3</span><span>2</span><span>1</span>
+                    </div>
+                    <div class="board" id="board">
+                        <!-- 화점 (Star Points) -->
+                        <div class="star-point" style="top: calc(17px + 3 * 34px); left: calc(17px + 3 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 3 * 34px); left: calc(17px + 7 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 3 * 34px); left: calc(17px + 11 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 7 * 34px); left: calc(17px + 3 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 7 * 34px); left: calc(17px + 7 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 7 * 34px); left: calc(17px + 11 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 11 * 34px); left: calc(17px + 3 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 11 * 34px); left: calc(17px + 7 * 34px);"></div>
+                        <div class="star-point" style="top: calc(17px + 11 * 34px); left: calc(17px + 11 * 34px);"></div>
+                        
+                        <!-- AI 생각 중 오버레이 -->
+                        <div class="thinking-overlay" id="thinking">
+                            <div class="thinking-dots">
+                                <div class="thinking-dot"></div>
+                                <div class="thinking-dot"></div>
+                                <div class="thinking-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" onclick="resetGame()">
+                        <span class="btn-icon">🔄</span> 새 게임
+                    </button>
+                    <button class="btn btn-secondary" id="undo-btn" onclick="undoMove()" disabled>
+                        <span class="btn-icon">↩️</span> 무르기
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 사운드 토글 버튼 -->
+    <button class="sound-toggle" id="sound-toggle" onclick="toggleSound()">🔊</button>
+
+    <!-- 승리 모달 -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-content">
+                <div class="trophy-icon">🏆</div>
+                <h2>Victory!</h2>
+                <div class="winner-info">
+                    <div class="winner-stone-display" id="winner-stone"></div>
+                    <span class="winner-name" id="winner-name">흑돌</span>
+                </div>
+                <div class="game-stats-modal">
+                    <div class="stat-item">
+                        <div class="value" id="final-time">00:00</div>
+                        <div class="label">플레이 시간</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="value" id="final-moves">0</div>
+                        <div class="label">총 착수</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="resetGame()">
+                    <span class="btn-icon">🎮</span> 다시 시작
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 파일 로드 -->
+    <script src="gomoku.js"></script>
+</body>
+</html>
